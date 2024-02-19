@@ -79,7 +79,12 @@ export default {
         }
       }
     }
-  }
+  },
+  mounted() {
+    // Focus on the first task when the page loads
+    if (this.tasks.length > 0) {
+      this.selectTask(0);
+    }}
 }
 </script>
 
