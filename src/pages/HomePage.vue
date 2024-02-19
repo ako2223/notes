@@ -2,6 +2,7 @@
   <div id="app">
     <div class="task-menu">
       <h2>Task List</h2>
+      <h3>Select:</h3>
       <ul>
         <li v-for="(task, index) in sortedTasks" :key="index" @click="selectTask(index)" :class="{ 'selected': selectedTaskIndex === index }">
           {{ task.text }} - {{ task.time }} - {{ task.date }}
