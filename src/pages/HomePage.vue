@@ -8,29 +8,30 @@
           {{ task.text }} - {{ task.time }} - {{ task.date }}
         </li>
       </ul>
-      <button @click="addTask">Add Task</button>
+      <router-link to="/add-task">Add Task</router-link>
     </div>
     <TaskDetail :task="selectedTask" @editTask="editTask" @removeTask="removeTask" v-if="selectedTask" />
+    <AddTask @taskAdded="handleTaskAdded" />
+    
   </div>
 </template>
 
 <script>
-import TaskList from '../components/FirstComponent.vue'
-import TaskDetail from '../components/TaskDetail.vue'
+import FirstComponent from '../components/FirstComponent.vue'
+import TaskDetail from '../components/TaskDetail.vue' // Adjust the path as needed
+import AddTask from '../components/AddTask.vue' 
+
 
 export default {
   name: 'App',
   components: {
-    TaskList,
-    TaskDetail
+    TaskDetail,
+    AddTask,
+    FirstComponent
   },
   data() {
     return {
-      tasks: [
-        { text: 'Task 1', description: 'Description of Task 1', time: '10:00 AM', date: '2024-02-20' },
-        { text: 'Task 2', description: 'Description of Task 2', time: '09:00 AM', date: '2024-02-21' },
-        // Add more tasks as needed
-      ],
+      tasks: [],
       selectedTaskIndex: null
     }
   },
@@ -40,7 +41,6 @@ export default {
     },
     sortedTasks() {
       return this.tasks.slice().sort((a, b) => {
-        // Assuming date format is YYYY-MM-DD and time is HH:MM AM/PM
         const dateTimeA = new Date(`${a.date} ${a.time}`);
         const dateTimeB = new Date(`${b.date} ${b.time}`);
         return dateTimeA - dateTimeB;
@@ -51,24 +51,13 @@ export default {
     selectTask(index) {
       this.selectedTaskIndex = index;
     },
-    addTask() {
-      const newTaskText = prompt("Enter the new task name:");
-      if (newTaskText !== null) {
-        const newTaskDescription = prompt("Enter the description for the task:");
-        const newTaskTime = prompt("Enter the time for the task (e.g., 10:00 AM):");
-        const newTaskDate = prompt("Enter the date for the task (e.g., 2024-02-19):");
-        this.tasks.push({
-          text: newTaskText,
-          description: newTaskDescription || '',
-          time: newTaskTime || '',
-          date: newTaskDate || ''
-        });
-      }
-    },
-    editTask(newText, newDescription) {
+    editTask(newText, newTime, newDate) {
       if (this.selectedTaskIndex !== null) {
-        this.tasks[this.selectedTaskIndex].text = newText;
-        this.tasks[this.selectedTaskIndex].description = newDescription;
+        const task = this.tasks[this.selectedTaskIndex];
+        task.text = newText;
+        task.time = newTime;
+        task.date = newDate;
+        this.saveTasksToLocalStorage();
       }
     },
     removeTask() {
@@ -76,15 +65,29 @@ export default {
         if (confirm('Are you sure you want to remove this task?')) {
           this.tasks.splice(this.selectedTaskIndex, 1);
           this.selectedTaskIndex = null;
+          this.saveTasksToLocalStorage();
         }
+      }
+    },
+    handleTaskAdded(task) {
+      console.log('Adding task:', task);
+  this.tasks.push(task);
+  this.saveTasksToLocalStorage();
+  this.$router.push('/'); // This assumes you're using vue-router to navigate back to the homepage
+},
+    saveTasksToLocalStorage() {
+      localStorage.setItem('tasks', JSON.stringify(this.tasks));
+    },
+    loadTasksFromLocalStorage() {
+      const storedTasks = localStorage.getItem('tasks');
+      if (storedTasks) {
+        this.tasks = JSON.parse(storedTasks);
       }
     }
   },
   mounted() {
-    // Focus on the first task when the page loads
-    if (this.tasks.length > 0) {
-      this.selectTask(0);
-    }}
+    this.loadTasksFromLocalStorage();
+  }
 }
 </script>
 
@@ -93,7 +96,6 @@ export default {
   width: 25%;
   float: left;
 }
-
 .selected {
   background-color: lightgray;
 }
